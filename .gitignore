@@ -1,0 +1,52 @@
+# --------------------
+# Python
+# --------------------
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+
+
+data/
+# --------------------
+# Virtual environments
+# --------------------
+venv/
+env/
+ENV/
+*.env
+
+# --------------------
+# Jupyter Notebook
+# --------------------
+.ipynb_checkpoints/
+
+# --------------------
+# Data files / large files
+# --------------------
+data/
+*.csv
+*.parquet
+*.zip
+*.h5
+*.db
+
+# --------------------
+# Logs
+# --------------------
+*.log
+
+# --------------------
+# OS / IDE files
+# --------------------
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# --------------------
+# Misc
+# --------------------
+*.tmp
+*.bak
