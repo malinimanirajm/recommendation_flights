@@ -7,3 +7,6 @@ holidays
 openai
 tqdm
 jupyter
+transformers
+torch
+dotenv

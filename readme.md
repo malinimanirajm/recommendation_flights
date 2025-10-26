@@ -157,3 +157,46 @@ while Flight 123 is also good but has slightly higher emissions.
 * 🤝 LLMOps integration for monitoring and feedback loops
 
 
+
+
+[1] DEFINE ROLE & CONTEXT
+   -> Specify expertise and purpose
+   -> Include environment, libraries, constraints
+   -> Example: “Act as senior ML engineer, AWS/Databricks environment”
+
+[2] PROVIDE DATA & GOALS
+   -> Sample datasets, schemas, metrics
+   -> Clear objective for output
+   -> Example: “Feature engineering for flight delay prediction, optimize F1”
+
+[3] STRUCTURED PROMPT
+   -> Specify output format & constraints
+   -> Few-shot examples if needed
+   -> Example: “Return only Python code, single block, with comments”
+
+[4] MULTI-STEP CHAINING
+   -> Break tasks into logical steps
+   -> Step outputs feed next prompts
+   -> Example: Features -> Code -> Refactor -> Explain -> Summarize
+
+[5] ITERATIVE REFINEMENT
+   -> Review output, request optimizations
+   -> Handle edge cases, errors, performance
+   -> Example: “Refactor code to handle missing data efficiently”
+
+[6] AUTOMATION & INTEGRATION
+   -> Connect AI output to pipelines, dashboards, CI/CD
+   -> Example: Generate ETL scripts or reports automatically
+
+[7] VALIDATION & AUDIT
+   -> Check AI outputs against reality/data
+   -> Ensure correctness, safety, regulatory compliance
+
+[8] SAVE & REUSE
+   -> Store useful prompts, code snippets, summaries
+   -> Build personal AI knowledge base
+
+[9] CONTINUOUS IMPROVEMENT
+   -> Adjust prompts for efficiency and clarity
+   -> Learn from past interactions for faster, better results
+

@@ -1,76 +1,45 @@
-"""
-utils.py
-Shared utilities used across the project.
-"""
-import os
-import pandas as pd
-from typing import List, Dict
+# utils.py
 import re
-import string
+import math
 
 def normalize_text(text: str) -> str:
     """
-    Normalize text for LLM prompts:
-    - Lowercase
-    - Remove extra spaces
-    - Remove punctuation
-    - Strip leading/trailing spaces
+    Simple text normalization:
+    - lowercase
+    - remove extra whitespace
+    - remove special characters except punctuation
     """
-    if not isinstance(text, str):
-        return ""
-    
-    # Lowercase
     text = text.lower()
-    
-    # Remove punctuation
-    text = text.translate(str.maketrans("", "", string.punctuation))
-    
-    # Replace multiple spaces with single space
-    text = re.sub(r'\s+', ' ', text)
-    
-    # Strip leading/trailing spaces
-    text = text.strip()
-    
-    return text
+    text = re.sub(r'\s+', ' ', text)  # collapse multiple spaces
+    text = re.sub(r'[^a-z0-9,.!? ]', '', text)  # remove special chars
+    return text.strip()
 
-def load_csv_data(path: str) -> pd.DataFrame:
-    """Load CSV with safe parsing."""
-    df = pd.read_csv(path)
-    if 'FL_DATE' in df.columns:
-        df['FL_DATE'] = pd.to_datetime(df['FL_DATE'], errors='coerce')
-    return df
-
-def validate_columns(df: pd.DataFrame, required_cols: List[str]) -> None:
-    missing = [c for c in required_cols if c not in df.columns]
-    if missing:
-        raise ValueError(f"Missing required columns: {missing}")
-
-def df_to_dict_list(df: pd.DataFrame, cols: List[str] = None) -> List[Dict]:
-    if cols:
-        df = df[cols]
-    return df.to_dict(orient="records")
-
-def score_flight(row, preference="balanced"):
+def eco_score(distance_miles: float, co2_kg: float) -> float:
     """
-    Lightweight scoring function:
-    - preference 'balanced' considers elapsed time, arr delay, and estimated CO2
-    - returns higher-is-better score
+    Compute a simple eco-friendliness score for a flight.
+    Higher score = more eco-friendly
     """
-    # safe getters
-    elapsed = float(row.get('ELAPSED_TIME') or 0)
-    arr_delay = float(row.get('ARR_DELAY') or 0)
-    co2 = float(row.get('ESTIMATED_CO2_KG') or 0)
-    # small epsilon to avoid division by zero
-    eps = 1e-6
+    if co2_kg == 0:
+        return 0
+    return max(0, distance_miles / co2_kg)  # simple efficiency metric
 
-    if preference == "balanced":
-        score = (1.0/(1+elapsed)) + (1.0/(1+max(0,arr_delay))) + (1.0/(1+co2))
-    elif preference == "fastest":
-        score = 1.0/(1+elapsed)
-    elif preference == "reliable":
-        score = 1.0/(1+max(0,arr_delay))
-    elif preference == "eco":
-        score = 1.0/(1+co2)
-    else:
-        score = (1.0/(1+elapsed)) + (1.0/(1+max(0,arr_delay))) + (1.0/(1+co2))
-    return score
+def compute_shortest_path(flights: list, origin: str, dest: str) -> list:
+    """
+    Placeholder for shortest-path computation.
+    flights: list of flight dicts with ORIGIN, DEST, ELAPSED_TIME
+    Returns: list of flight dicts representing shortest path
+    """
+    # Simple greedy approach (for demo purposes)
+    path = []
+    current = origin
+    remaining = flights.copy()
+    while current != dest and remaining:
+        # choose next flight from current with smallest ELAPSED_TIME
+        candidates = [f for f in remaining if f["ORIGIN"] == current]
+        if not candidates:
+            break
+        next_flight = min(candidates, key=lambda x: x.get("ELAPSED_TIME", float("inf")))
+        path.append(next_flight)
+        current = next_flight["DEST"]
+        remaining.remove(next_flight)
+    return path
