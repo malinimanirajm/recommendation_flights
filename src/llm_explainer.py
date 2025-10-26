@@ -1,10 +1,11 @@
 # llm_explainer.py
 import os
 import logging
+import time
 from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
 from utils import normalize_text  # your utility functions
 from dotenv import load_dotenv
-import time
+import torch
 
 # -----------------------------
 # Load environment variables
@@ -25,28 +26,41 @@ if not logger.handlers:
     ch.setFormatter(formatter)
     logger.addHandler(ch)
 
-
 # -----------------------------
 # Hugging Face LLM Explainer
 # -----------------------------
 class LLMExplainer:
-    def __init__(self, model_name: str = "sshleifer/tiny-gpt2", device: int = -1):
+    def __init__(self, model_name: str = "distilgpt2"):
         """
         Initialize Hugging Face LLM Explainer
-        :param model_name: HF model name
-        :param device: -1 = CPU, 0 = GPU
+        :param model_name: HF model name (smaller model for faster load)
         """
-        start_time=time.time()
+        # Detect device
+        if torch.backends.mps.is_available():
+            self.device = torch.device("mps")
+            logger.info("Using Apple MPS (Metal GPU)")
+        else:
+            self.device = torch.device("cpu")
+            logger.info("MPS not available, using CPU")
+
+        # Load model
+        start_time = time.time()
         logger.info(f"Loading Hugging Face model {model_name} ...")
         self.tokenizer = AutoTokenizer.from_pretrained(model_name, use_auth_token=HF_API_TOKEN)
-        self.model = AutoModelForCausalLM.from_pretrained(model_name, use_auth_token=HF_API_TOKEN)
+        self.model = AutoModelForCausalLM.from_pretrained(
+            model_name,
+            torch_dtype=torch.float32,   # required for MPS
+            low_cpu_mem_usage=True,
+            use_auth_token=HF_API_TOKEN
+        ).to(self.device)
+
         self.generator = pipeline(
             "text-generation",
             model=self.model,
             tokenizer=self.tokenizer,
-            device=device
+            device=0 if self.device.type != "cpu" else -1
         )
-        end_time=time.time()
+        end_time = time.time()
         logger.info(f"Model loaded in {end_time - start_time:.2f} seconds.")
         logger.info("Model loaded successfully.")
 
@@ -60,10 +74,10 @@ class LLMExplainer:
         prompt = self._build_prompt(flights, user_preference)
 
         try:
-            gen_start_time=time.time()
-            response = self.generator(prompt, max_new_tokens=30)
-            gen_end_time=time.time()
-            logger.info(f"Explanation generated in {gen_end_time - gen_start_time:.2f} seconds.")   
+            gen_start_time = time.time()
+            response = self.generator(prompt, max_new_tokens=50)  # increased for better explanation
+            gen_end_time = time.time()
+            logger.info(f"Explanation generated in {gen_end_time - gen_start_time:.2f} seconds.")
             explanation = response[0]["generated_text"]
             return explanation.strip()
         except Exception as e:
